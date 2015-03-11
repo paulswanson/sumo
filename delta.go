@@ -36,6 +36,7 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 			for t := range input {
 				fmt.Printf("worker(%v): got %v\n", i, t)
 				select {
+				// TODO Consider mutex protecting index struct, see log.Logger example
 				case deltaChan <- makeDeltas(t, index, i):
 				case <-done: // TODO Is this even required / useful
 					return
