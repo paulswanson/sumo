@@ -26,12 +26,21 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 	deltaChan := make(chan []delta)
 
 	var wg sync.WaitGroup
+	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!
 	numWorkers := runtime.GOMAXPROCS(0) * 2
 	wg.Add(numWorkers)
 
 	for i := 0; i < numWorkers; i++ {
 		go func() {
-			worker(done, input, deltaChan, index, i)
+			// worker(done, input, deltaChan, index, i)
+			for t := range input {
+				fmt.Printf("worker(%v): got %v\n", i, t)
+				select {
+				case deltaChan <- makeDeltas(t, index, i):
+				case <-done: // TODO Is this even required / useful
+					return
+				}
+			}
 			wg.Done()
 		}()
 	}
@@ -49,16 +58,16 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 	return deltas
 }
 
-func worker(done <-chan bool, input <-chan workTask, output chan<- []delta, index replaceIndex, id int) {
-	for t := range input {
-		fmt.Printf("worker(%v): got %v\n", id, t)
-		select {
-		case output <- makeDeltas(t, index, id):
-		case <-done:
-			return
-		}
-	}
-}
+//func worker(done <-chan bool, input <-chan workTask, output chan<- []delta, index replaceIndex, id int) {
+//	for t := range input {
+//		fmt.Printf("worker(%v): got %v\n", id, t)
+//		select {
+//		case output <- makeDeltas(t, index, id):
+//		case <-done:
+//			return
+//		}
+//	}
+//}
 
 // Make deltas
 func makeDeltas(t workTask, index replaceIndex, id int) []delta {
