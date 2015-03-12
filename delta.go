@@ -18,19 +18,19 @@ type delta struct {
 	index int // Index value of replacement
 }
 
+// TODO this func really needs to handle & return errors
 func producer(input <-chan workTask, index replaceIndex) []delta {
-	// TODO this func really needs to handle & return errors
-	done := make(chan bool)
-	defer close(done)
-
-	deltaChan := make(chan []delta)
 
 	var wg sync.WaitGroup
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!
-	numWorkers := runtime.GOMAXPROCS(0) * 2
-	wg.Add(numWorkers)
+	maxGophers := runtime.GOMAXPROCS(0) * 2
+	wg.Add(maxGophers)
 
-	for i := 0; i < numWorkers; i++ {
+	deltaChan := make(chan []delta)
+	done := make(chan bool)
+	defer close(done)
+
+	for i := 0; i < maxGophers; i++ {
 		go func() {
 			// worker(done, input, deltaChan, index, i)
 			for t := range input {
@@ -80,12 +80,12 @@ func makeDeltas(t workTask, index replaceIndex, id int) []delta {
 
 	for i := 0; i < len(index); i++ {
 
-		fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index[i].find))
-		results := lineIndex.Lookup(index[i].find, -1)
+		fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index.readItem(i).find))
+		results := lineIndex.Lookup(index.readItem(i).find, -1)
 		fmt.Printf("makeDeltas(%v) found: %v\n", id, results)
 
 		for p := range results {
-			s = append(s, delta{t.lineNumber, p, i})
+			s = append(s, delta{line: t.lineNumber, pos: p, index: i})
 			fmt.Printf("makeDeltas(%v) adding: %v\n", id, p)
 		}
 	}

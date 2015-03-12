@@ -28,12 +28,13 @@ func main() {
 	}
 	defer indexFile.Close()
 
-	var masterIndex replaceIndex = make(replaceIndex, 0)
 	c := csv.NewReader(indexFile)
+
+	var masterIndex replaceIndex
+	masterIndex = newReplaceIndex(c)
 
 	fmt.Printf("Master index: Building\n")
 	// TODO Need to reinstate error checking properly
-	masterIndex.init(c)
 	//	indexSize, err := masterIndex.init(c)
 	//	if err != nil {
 	//		log.Fatal(err)
@@ -57,8 +58,9 @@ func main() {
 
 	buf := bytes.NewBuffer(inputData)
 	inputChan := make(chan workTask)
+	var lineCount int
+
 	go func() {
-		var lineCount int
 		for {
 			b, err := buf.ReadBytes('\n')
 			if err != nil { // TODO Investigate final return / EOF scenario
@@ -74,6 +76,18 @@ func main() {
 	deltas = producer(inputChan, masterIndex)
 
 	fmt.Printf("Final deltas: %v\n", deltas)
+	buf = bytes.NewBuffer(inputData)
+
+	// Output the file, applying the deltas
+	for i := 0; i < len(inputData); i++ {
+		b, err := buf.ReadBytes('\n')
+		if err != nil { // TODO Investigate final return / EOF scenario
+			break
+		}
+		// TODO Apply delta to []byte and output
+		fmt.Printf("%v\n", b)
+	}
+
 	//	err := writeNewFile(inputData, deltas, flag.Arg(1))
 	//	if err != nil {
 	//		log.Fatal(err)
