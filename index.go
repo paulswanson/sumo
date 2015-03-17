@@ -11,17 +11,16 @@ type replaceItem struct {
 	replace []byte
 }
 
-// type replaceIndex []replaceItem
-
 type replaceIndex struct {
 	mu    sync.RWMutex
 	index []replaceItem
 }
 
-func newReplaceIndex(r *csv.Reader) (ri replaceIndex, err error) {
+func newReplaceIndex(r io.Reader) (ri replaceIndex, err error) {
+	c := csv.NewReader(r)
 	ri.index = make([]replaceItem, 0)
 	for i := 0; ; i++ {
-		inputRow, err := r.Read()
+		inputRow, err := c.Read()
 		if err != nil {
 			// Return io.EOF only if there are no records
 			if err == io.EOF && i > 0 {
@@ -31,7 +30,6 @@ func newReplaceIndex(r *csv.Reader) (ri replaceIndex, err error) {
 			}
 		}
 
-		//		fmt.Printf("Index item: %v, %v\n", []byte(inputRow[0]), []byte(inputRow[1]))
 		ri.index = append(ri.index, replaceItem{find: []byte(inputRow[0]), replace: []byte(inputRow[1])})
 	}
 }

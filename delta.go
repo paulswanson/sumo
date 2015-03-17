@@ -3,6 +3,7 @@ package main
 import (
 	"index/suffixarray"
 	"runtime"
+	"sort"
 	"sync"
 )
 
@@ -31,12 +32,10 @@ func producer(input <-chan workTask, index *replaceIndex) []delta {
 
 	for i := 0; i < maxGophers; i++ {
 		go func() {
-			// worker(done, input, deltaChan, index, i)
 			for t := range input {
-				// fmt.Printf("worker(%v): got %v\n", i, t)
 				select {
 				case deltaChan <- makeDeltas(t, index, i):
-				case <-done: // TODO Is this even required / useful
+				case <-done:
 					return
 				}
 			}
@@ -54,6 +53,7 @@ func producer(input <-chan workTask, index *replaceIndex) []delta {
 		deltas = append(deltas, d...)
 	}
 
+	sort.Sort(ByLine(deltas))
 	return deltas
 }
 
@@ -61,19 +61,27 @@ func producer(input <-chan workTask, index *replaceIndex) []delta {
 func makeDeltas(t workTask, index *replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
-
-	// fmt.Printf("%v: Building suffixarray on: %v\n", id, string(t.lineValue))
 	lineIndex := suffixarray.New(t.lineValue)
 
 	for i := 0; i < index.len(); i++ {
-
-		// fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index.readItem(i).find))
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
-		// fmt.Printf("makeDeltas(%v) found: %v\n", id, results)
-
 		for _, p := range results {
 			s = append(s, delta{line: t.lineNumber, pos: p, index: i})
 		}
 	}
 	return s
+}
+
+type ByLine []delta
+
+func (d ByLine) Len() int {
+	return len(d)
+}
+
+func (d ByLine) Swap(i, j int) {
+	d[i], d[j] = d[j], d[i]
+}
+
+func (d ByLine) Less(i, j int) bool {
+	return d[i].line < d[j].line
 }
