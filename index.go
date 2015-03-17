@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"sync"
 )
@@ -19,7 +18,6 @@ type replaceIndex struct {
 	index []replaceItem
 }
 
-// TODO This func also needs to return an error - file read or csv error
 func newReplaceIndex(r *csv.Reader) (ri replaceIndex, err error) {
 	ri.index = make([]replaceItem, 0)
 	for i := 0; ; i++ {
@@ -33,7 +31,7 @@ func newReplaceIndex(r *csv.Reader) (ri replaceIndex, err error) {
 			}
 		}
 
-		fmt.Printf("Index item: %v, %v\n", []byte(inputRow[0]), []byte(inputRow[1]))
+		//		fmt.Printf("Index item: %v, %v\n", []byte(inputRow[0]), []byte(inputRow[1]))
 		ri.index = append(ri.index, replaceItem{find: []byte(inputRow[0]), replace: []byte(inputRow[1])})
 	}
 }

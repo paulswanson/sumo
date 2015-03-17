@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"index/suffixarray"
 	"runtime"
 	"sync"
@@ -18,7 +17,7 @@ type delta struct {
 	index int // Index value of replacement
 }
 
-// TODO this func really needs to handle & return errors
+// TODO Are there any errors that need handling?
 func producer(input <-chan workTask, index replaceIndex) []delta {
 
 	var wg sync.WaitGroup
@@ -34,9 +33,8 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 		go func() {
 			// worker(done, input, deltaChan, index, i)
 			for t := range input {
-				fmt.Printf("worker(%v): got %v\n", i, t)
+				// fmt.Printf("worker(%v): got %v\n", i, t)
 				select {
-				// TODO Consider mutex protecting index struct, see log.Logger example
 				case deltaChan <- makeDeltas(t, index, i):
 				case <-done: // TODO Is this even required / useful
 					return
@@ -59,34 +57,22 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 	return deltas
 }
 
-//func worker(done <-chan bool, input <-chan workTask, output chan<- []delta, index replaceIndex, id int) {
-//	for t := range input {
-//		fmt.Printf("worker(%v): got %v\n", id, t)
-//		select {
-//		case output <- makeDeltas(t, index, id):
-//		case <-done:
-//			return
-//		}
-//	}
-//}
-
 // Make deltas
 func makeDeltas(t workTask, index replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
 
-	fmt.Printf("%v: Building suffixarray on: %v\n", id, string(t.lineValue))
+	// fmt.Printf("%v: Building suffixarray on: %v\n", id, string(t.lineValue))
 	lineIndex := suffixarray.New(t.lineValue)
 
 	for i := 0; i < index.len(); i++ {
 
-		fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index.readItem(i).find))
+		// fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index.readItem(i).find))
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
-		fmt.Printf("makeDeltas(%v) found: %v\n", id, results)
+		// fmt.Printf("makeDeltas(%v) found: %v\n", id, results)
 
-		for p := range results {
+		for _, p := range results {
 			s = append(s, delta{line: t.lineNumber, pos: p, index: i})
-			fmt.Printf("makeDeltas(%v) adding: %v\n", id, p)
 		}
 	}
 	return s

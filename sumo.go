@@ -15,7 +15,7 @@ func main() {
 
 	flag.Parse()
 	if flag.NArg() < 3 {
-		fmt.Println("Error, please specifiy: index input output")
+		fmt.Println("Please specifiy: index input output")
 		return
 	}
 
@@ -31,13 +31,13 @@ func main() {
 
 	c := csv.NewReader(indexFile)
 
-	fmt.Printf("Master index: Building\n")
+	// fmt.Printf("Master index: Building\n")
 
 	masterIndex, err := newReplaceIndex(c)
 	if err != nil {
 		switch err {
 		case io.EOF:
-			fmt.Printf("Error: index file is empty\n")
+			fmt.Printf("The index file is empty, can't continue.\n")
 			return
 		default:
 			log.Fatal(err)
@@ -45,7 +45,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Master index: Done\n")
+	// fmt.Printf("Master index: Done\n")
 
 	// Read in the input file
 	inputFile, err := os.Open(flag.Arg(1))
@@ -65,10 +65,11 @@ func main() {
 	inputChan := make(chan workTask)
 	var lineCount int
 
+	// Feed the producer line at a time
 	go func() {
 		for {
 			b, err := buf.ReadBytes('\n')
-			if err != nil { // TODO Investigate final return / EOF scenario
+			if err != nil {
 				break
 			}
 			inputChan <- workTask{b, lineCount}
@@ -77,20 +78,20 @@ func main() {
 		close(inputChan)
 	}()
 
-	var deltas []delta
-	deltas = producer(inputChan, masterIndex)
-
+	// Collect the resultant deltas
+	deltas := producer(inputChan, masterIndex)
 	fmt.Printf("Final deltas: %v\n", deltas)
+
 	buf = bytes.NewBuffer(inputData)
 
 	// Output the file, applying the deltas
 	for i := 0; i < len(inputData); i++ {
 		b, err := buf.ReadBytes('\n')
-		if err != nil { // TODO Investigate final return / EOF scenario
+		if err != nil {
 			break
 		}
 		// TODO Apply delta to []byte and output
-		fmt.Printf("%v\n", b)
+		fmt.Sprintf("%v\n", b)
 	}
 
 	//	err := writeNewFile(inputData, deltas, flag.Arg(1))
