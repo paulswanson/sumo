@@ -79,7 +79,7 @@ func main() {
 	}()
 
 	// Collect the resultant deltas
-	deltas := producer(inputChan, masterIndex)
+	deltas := producer(inputChan, &masterIndex)
 	fmt.Printf("Final deltas: %v\n", deltas)
 
 	buf = bytes.NewBuffer(inputData)

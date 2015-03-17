@@ -18,7 +18,7 @@ type delta struct {
 }
 
 // TODO Are there any errors that need handling?
-func producer(input <-chan workTask, index replaceIndex) []delta {
+func producer(input <-chan workTask, index *replaceIndex) []delta {
 
 	var wg sync.WaitGroup
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!
@@ -58,7 +58,7 @@ func producer(input <-chan workTask, index replaceIndex) []delta {
 }
 
 // Make deltas
-func makeDeltas(t workTask, index replaceIndex, id int) []delta {
+func makeDeltas(t workTask, index *replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
 
