@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -30,16 +31,20 @@ func main() {
 
 	c := csv.NewReader(indexFile)
 
-	var masterIndex replaceIndex
-	masterIndex = newReplaceIndex(c)
-
 	fmt.Printf("Master index: Building\n")
-	// TODO Need to reinstate error checking properly
-	//	indexSize, err := masterIndex.init(c)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//		return
-	//	}
+
+	masterIndex, err := newReplaceIndex(c)
+	if err != nil {
+		switch err {
+		case io.EOF:
+			fmt.Printf("Error: index file is empty\n")
+			return
+		default:
+			log.Fatal(err)
+			return
+		}
+	}
+
 	fmt.Printf("Master index: Done\n")
 
 	// Read in the input file

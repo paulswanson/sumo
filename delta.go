@@ -78,7 +78,7 @@ func makeDeltas(t workTask, index replaceIndex, id int) []delta {
 	fmt.Printf("%v: Building suffixarray on: %v\n", id, string(t.lineValue))
 	lineIndex := suffixarray.New(t.lineValue)
 
-	for i := 0; i < len(index); i++ {
+	for i := 0; i < index.len(); i++ {
 
 		fmt.Printf("makeDeltas(%v) find: %v \n", id, string(index.readItem(i).find))
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
