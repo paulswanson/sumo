@@ -29,11 +29,9 @@ func main() {
 	}
 	defer indexFile.Close()
 
-	c := csv.NewReader(indexFile)
-
 	// fmt.Printf("Master index: Building\n")
 
-	masterIndex, err := newReplaceIndex(c)
+	masterIndex, err := newReplaceIndex(csv.NewReader(indexFile))
 	if err != nil {
 		switch err {
 		case io.EOF:
