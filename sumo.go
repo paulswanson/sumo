@@ -54,22 +54,20 @@ func main() {
 		return
 	}
 
-	// TODO Using bytes.Buffer could cause huge memory issues on big files
-	// inputData should always be referenced via a pointer
-	buf := bytes.NewBuffer(inputData)
+	var off, end int
 	inputChan := make(chan workTask)
-	var lineCount int
 
-	// Feed the producer line at a time
+	// Send line at a time as work task to generate deltas
 	go func() {
 		for {
-			// TODO Probably best just to index the delims in inputData
-			b, err := buf.ReadBytes('\n')
-			if err != nil {
+			i := bytes.IndexByte(inputData[off:], '\n')
+			end = off + i + 1
+			if i < 0 {
+				err = io.EOF
 				break
 			}
-			inputChan <- workTask{b, lineCount}
-			lineCount++
+			inputChan <- workTask{inputData[off:end], off} // TODO lineCount is now offset in inputData
+			off = end
 		}
 		close(inputChan)
 	}()
@@ -91,4 +89,5 @@ func main() {
 	//	out := csv.NewWriter(os.Stdout)
 	//	out.Write(headerRow)
 	//	out.Flush()
+
 }
