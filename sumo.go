@@ -55,7 +55,7 @@ func main() {
 	}
 
 	var off, end int
-	inputChan := make(chan workTask)
+	inputChan := make(chan line)
 
 	// Send line at a time as work task to generate deltas
 	go func() {
@@ -66,7 +66,7 @@ func main() {
 				err = io.EOF
 				break
 			}
-			inputChan <- workTask{inputData[off:end], off} // TODO lineCount is now offset in inputData
+			inputChan <- line{off, inputData[off:end]}
 			off = end
 		}
 		close(inputChan)

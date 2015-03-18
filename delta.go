@@ -7,19 +7,19 @@ import (
 	"sync"
 )
 
-type workTask struct {
-	lineValue  []byte // One line from source slice
-	lineNumber int    // Sequence number of line
+type line struct {
+	off   int    // Sequence number of line
+	value []byte // One line from source slice
 }
 
 type delta struct {
-	line  int // Line number of source []byte
-	pos   int // Position of current value
-	index int // Index value of replacement
+	line  int // Line offset
+	off   int // Offset of existing value
+	index int // Index of replacement value
 }
 
 // TODO Are there any errors that need handling?
-func producer(input <-chan workTask, index *replaceIndex) []delta {
+func producer(input <-chan line, index *replaceIndex) []delta {
 
 	var wg sync.WaitGroup
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!
@@ -58,15 +58,15 @@ func producer(input <-chan workTask, index *replaceIndex) []delta {
 }
 
 // Make deltas
-func makeDeltas(t workTask, index *replaceIndex, id int) []delta {
+func makeDeltas(t line, index *replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
-	lineIndex := suffixarray.New(t.lineValue)
+	lineIndex := suffixarray.New(t.value)
 
 	for i := 0; i < index.len(); i++ {
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
 		for _, p := range results {
-			s = append(s, delta{line: t.lineNumber, pos: p, index: i})
+			s = append(s, delta{line: t.off, off: p, index: i})
 		}
 	}
 	return s
