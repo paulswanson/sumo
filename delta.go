@@ -8,12 +8,11 @@ import (
 )
 
 type line struct {
-	off   int    // Sequence number of line
+	off   int    // Offset of line
 	value []byte // One line from source slice
 }
 
 type delta struct {
-	line  int // Line offset
 	off   int // Offset of existing value
 	index int // Index of replacement value
 }
@@ -66,7 +65,7 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 	for i := 0; i < index.len(); i++ {
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
 		for _, p := range results {
-			s = append(s, delta{line: t.off, off: p, index: i})
+			s = append(s, delta{off: t.off + p, index: i})
 		}
 	}
 	return s
@@ -83,5 +82,5 @@ func (d ByLine) Swap(i, j int) {
 }
 
 func (d ByLine) Less(i, j int) bool {
-	return d[i].line < d[j].line
+	return d[i].off < d[j].off
 }
