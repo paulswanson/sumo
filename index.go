@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"io"
+	"strings"
 	"sync"
 )
 
@@ -30,7 +31,7 @@ func newReplaceIndex(r io.Reader) (ri replaceIndex, err error) {
 			}
 		}
 
-		ri.index = append(ri.index, replaceItem{find: []byte(inputRow[0]), replace: []byte(inputRow[1])})
+		ri.index = append(ri.index, replaceItem{find: []byte(strings.TrimSpace(inputRow[0])), replace: []byte(strings.TrimSpace(inputRow[1]))})
 	}
 }
 
