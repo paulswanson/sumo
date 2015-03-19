@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -75,19 +76,56 @@ func main() {
 	// Collect the resultant deltas
 	deltas := producer(inputChan, &masterIndex)
 
-	// for each delta process the corresponding line in inputData
-
-	for i, d := range deltas {
-		fmt.Printf("Delta %v: %v\n", i, d)
+	if len(deltas) == 0 {
+		fmt.Printf("No matches found\n")
+		return
 	}
-	//	err := writeNewFile(inputData, deltas, flag.Arg(1))
-	//	if err != nil {
-	//		log.Fatal(err)
-	//		return
-	//	}
 
-	//	out := csv.NewWriter(os.Stdout)
-	//	out.Write(headerRow)
-	//	out.Flush()
+	// open output file
+	outFile, err := os.Create(flag.Arg(2))
+	if err != nil {
+		panic(err)
+	}
 
+	defer func() {
+		if err := outFile.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	// make a write buffer
+	w := bufio.NewWriter(outFile)
+
+	var o int
+	// for each delta process the corresponding line in inputData
+	for _, d := range deltas {
+
+		// TODO This approach could lead to large slices in memory
+
+		// read up to offset as slice, and write
+		_, err = w.Write(inputData[o:d.off])
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		// Write replacement value
+		_, err = w.Write(masterIndex.readItem(d.index).replace)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		o = d.off + len(masterIndex.readItem(d.index).find)
+		w.Flush()
+
+	}
+
+	// write out remainder of slice
+	_, err = w.Write(inputData[o:])
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	w.Flush()
 }
