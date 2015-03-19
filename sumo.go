@@ -29,6 +29,7 @@ func main() {
 	}
 	defer indexFile.Close()
 
+	fmt.Printf("Building index ...\n")
 	masterIndex, err := newReplaceIndex(indexFile)
 	if err != nil {
 		switch err {
@@ -49,12 +50,14 @@ func main() {
 	}
 	defer inputFile.Close()
 
+	fmt.Printf("Reading input file into memory ...\n")
 	inputData, err := ioutil.ReadAll(inputFile)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
+	fmt.Printf("Processing input data ...\n")
 	var off, end int
 	inputChan := make(chan line)
 
@@ -93,6 +96,7 @@ func main() {
 		}
 	}()
 
+	fmt.Printf("Writing to output file ...\n")
 	// make a write buffer
 	w := bufio.NewWriter(outFile)
 
@@ -128,4 +132,5 @@ func main() {
 		return
 	}
 	w.Flush()
+	fmt.Printf("Done.\n")
 }
