@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"index/suffixarray"
 	"runtime"
 	"sort"
@@ -22,12 +23,14 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 
 	var wg sync.WaitGroup
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!
-	maxGophers := runtime.GOMAXPROCS(0) * 2
+	maxGophers := runtime.GOMAXPROCS(0)
 	wg.Add(maxGophers)
 
 	deltaChan := make(chan []delta)
 	done := make(chan bool)
 	defer close(done)
+
+	fmt.Printf("Launching %v gophers ...\n", maxGophers)
 
 	for i := 0; i < maxGophers; i++ {
 		go func() {
@@ -47,10 +50,15 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 		close(deltaChan)
 	}()
 
+	fmt.Printf("Collecting deltas: \n")
 	deltas := make([]delta, 0)
 	for d := range deltaChan {
-		deltas = append(deltas, d...)
+		if len(d) > 0 {
+			deltas = append(deltas, d...)
+		}
 	}
+
+	fmt.Printf("\nGot %v deltas.\n", len(deltas))
 
 	sort.Sort(ByLine(deltas))
 	return deltas
@@ -60,14 +68,20 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 func makeDeltas(t line, index *replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
+
 	lineIndex := suffixarray.New(t.value)
 
 	for i := 0; i < index.len(); i++ {
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
-		for _, p := range results {
-			s = append(s, delta{off: t.off + p, index: i})
+		if len(results) > 0 {
+			for _, p := range results {
+				d := delta{off: t.off + p, index: i}
+				fmt.Printf(".")
+				s = append(s, d)
+			}
 		}
 	}
+
 	return s
 }
 
