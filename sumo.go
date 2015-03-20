@@ -101,6 +101,7 @@ func main() {
 	w := bufio.NewWriter(outFile)
 
 	var o int
+
 	// for each delta process the corresponding line in inputData
 	for _, d := range deltas {
 
