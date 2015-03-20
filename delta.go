@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"index/suffixarray"
+	"regexp/syntax"
 	"runtime"
 	"sort"
 	"sync"
@@ -50,7 +51,7 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 		close(deltaChan)
 	}()
 
-	fmt.Printf("Collecting deltas: \n")
+	fmt.Printf("Collecting deltas... \n")
 	deltas := make([]delta, 0)
 	for d := range deltaChan {
 		if len(d) > 0 {
@@ -58,7 +59,7 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 		}
 	}
 
-	fmt.Printf("\nGot %v deltas.\n", len(deltas))
+	fmt.Printf("Got %v deltas.\n", len(deltas))
 
 	sort.Sort(ByLine(deltas))
 	return deltas
@@ -75,12 +76,23 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
 		if len(results) > 0 {
 			for _, p := range results {
-				d := delta{off: t.off + p, index: i}
-				fmt.Printf(".")
-				s = append(s, d)
+				// It's not a match if it's a partial word
+				x := p + len(index.readItem(i).find) - 1
+				if x < len(t.value) {
+					if syntax.IsWordChar(rune(t.value[x])) && !syntax.IsWordChar(rune(t.value[x+1])) {
+						d := delta{off: t.off + p, index: i}
+						s = append(s, d)
+					}
+				} else {
+					d := delta{off: t.off + p, index: i}
+					s = append(s, d)
+				}
 			}
 		}
 	}
+
+	// TODO Optional memory optimiser. Use less system RAM at the expense of CPU.
+	// debug.FreeOSMemory()
 
 	return s
 }
