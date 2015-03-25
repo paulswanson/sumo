@@ -82,7 +82,7 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 
 				// TODO Is there a guarantee of left-to-right eval?
 				// TODO Test this works and hasn't broken everything!!!
-
+				// BUG Fails on matching last word of line with a terminating non-alpha, drops it
 				// It's a full word match if it's end of line or word terminates in non-alpha
 				if (p < len(t.value) && !syntax.IsWordChar(rune(t.value[p+len(index.readItem(i).find)])+1)) || (p == len(t.value)) {
 					d := delta{off: t.off + p, index: i}
