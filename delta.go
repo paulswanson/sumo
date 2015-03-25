@@ -78,31 +78,16 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 		if len(results) > 0 {
 			for _, p := range results {
 
-				// We get this far then a match has been found
-
 				// It's not a match if it's a partial word
-				//x := p + len(index.readItem(i).find) - 1 // If it's not the end of the slice ...
 
 				// TODO Is there a guarantee of left-to-right eval?
 				// TODO Test this works and hasn't broken everything!!!
 
 				// It's a full word match if it's end of line or word terminates in non-alpha
-				if (p == len(t.value)) || (p < len(t.value) && !syntax.IsWordChar(rune(t.value[p+len(index.readItem(i).find)])+1)) {
+				if (p < len(t.value) && !syntax.IsWordChar(rune(t.value[p+len(index.readItem(i).find)])+1)) || (p == len(t.value)) {
 					d := delta{off: t.off + p, index: i}
 					s = append(s, d)
 				}
-				//if x < len(t.value) { // ... and the search term is short enough
-
-				//	// If last word is followed by non-alpha, then it's a full match
-				//	if syntax.IsWordChar(rune(t.value[x])) && !syntax.IsWordChar(rune(t.value[x+1])) {
-				//		d := delta{off: t.off + p, index: i}
-				//		s = append(s, d)
-				//	}
-				//} else {
-				//	d := delta{off: t.off + p, index: i}
-				//	s = append(s, d)
-				//}
-
 			}
 		}
 	}
