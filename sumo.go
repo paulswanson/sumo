@@ -105,21 +105,13 @@ func main() {
 	// for each delta process the corresponding line in inputData
 	for _, d := range deltas {
 
-		// TODO This approach could lead to large slices in memory
+		// TODO This approach could lead to large slices in memory, only good for strings really - not binary objects.
 
 		// read up to offset as slice, and write
-		_, err = w.Write(inputData[o:d.off])
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
+		write(w, inputData[o:d.off])
 
 		// Write replacement value
-		_, err = w.Write(masterIndex.readItem(d.index).replace)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
+		write(w, masterIndex.readItem(d.index).replace)
 
 		o = d.off + len(masterIndex.readItem(d.index).find)
 		w.Flush()
@@ -127,11 +119,15 @@ func main() {
 	}
 
 	// write out remainder of slice
-	_, err = w.Write(inputData[o:])
+	write(w, inputData[o:])
+	w.Flush()
+	fmt.Printf("Done.\n")
+}
+
+func write(w *bufio.Writer, b []byte) {
+	_, err := w.Write(b)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	w.Flush()
-	fmt.Printf("Done.\n")
 }
