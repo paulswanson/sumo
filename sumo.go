@@ -105,22 +105,20 @@ func main() {
 	}
 
 	fmt.Printf("Writing to output file ...\n")
-	// make a write buffer
 	w := bufio.NewWriter(outFile)
 
 	var o int
 
-	// for each delta process the corresponding line in inputData
+	// Write out to file, making replacements as we go
 	for _, d := range deltas {
 
-		// TODO This approach could lead to large slices in memory, only good for strings really - not binary objects.
-
-		// read up to offset as slice, and write
+		// Read up to the next found word
 		write(w, inputData[o:d.off])
 
 		// Write replacement value
 		write(w, masterIndex.readItem(d.index).replace)
 
+		// Jump forward to end of replaced word
 		o = d.off + len(masterIndex.readItem(d.index).find)
 		w.Flush()
 
