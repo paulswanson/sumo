@@ -96,6 +96,14 @@ func main() {
 		}
 	}()
 
+	write := func(w *bufio.Writer, b []byte) {
+		_, err := w.Write(b)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	}
+
 	fmt.Printf("Writing to output file ...\n")
 	// make a write buffer
 	w := bufio.NewWriter(outFile)
@@ -122,12 +130,4 @@ func main() {
 	write(w, inputData[o:])
 	w.Flush()
 	fmt.Printf("Done.\n")
-}
-
-func write(w *bufio.Writer, b []byte) {
-	_, err := w.Write(b)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
 }
