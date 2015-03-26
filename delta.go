@@ -20,7 +20,7 @@ type delta struct {
 }
 
 // TODO Are there any errors that need handling?
-func producer(input <-chan line, index *replaceIndex) []delta {
+func getDeltas(input <-chan line, index *replaceIndex) []delta {
 
 	var wg sync.WaitGroup
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Maximum CPU utilisation please!

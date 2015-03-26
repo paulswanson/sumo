@@ -61,7 +61,7 @@ func main() {
 	var off, end int
 	inputChan := make(chan line)
 
-	// Send one line at a time to the delta producer
+	// Feed the delta producer line at a time
 	go func() {
 		for {
 			i := bytes.IndexByte(inputData[off:], '\n')
@@ -77,7 +77,7 @@ func main() {
 	}()
 
 	// Collect the resultant deltas
-	deltas := producer(inputChan, &masterIndex)
+	deltas := getDeltas(inputChan, &masterIndex)
 
 	if len(deltas) == 0 {
 		fmt.Printf("No matches found\n")
