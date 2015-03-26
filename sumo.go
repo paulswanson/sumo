@@ -124,7 +124,7 @@ func main() {
 
 	}
 
-	// write out remainder of slice
+	// Write the remaining input data
 	write(w, inputData[o:])
 	w.Flush()
 	fmt.Printf("Done.\n")
