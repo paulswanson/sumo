@@ -15,7 +15,7 @@ func main() {
 
 	flag.Parse()
 	if flag.NArg() < 3 {
-		fmt.Println("Please specifiy: index input output")
+		fmt.Println("Please specifiy: <index.csv> <input> <output>")
 		return
 	}
 
@@ -61,7 +61,7 @@ func main() {
 	var off, end int
 	inputChan := make(chan line)
 
-	// Send line at a time as work task to generate deltas
+	// Send one line at a time to the delta producer
 	go func() {
 		for {
 			i := bytes.IndexByte(inputData[off:], '\n')
@@ -84,7 +84,7 @@ func main() {
 		return
 	}
 
-	// open output file
+	// Open output file
 	outFile, err := os.Create(flag.Arg(2))
 	if err != nil {
 		panic(err)
@@ -107,25 +107,25 @@ func main() {
 	fmt.Printf("Writing to output file ...\n")
 	w := bufio.NewWriter(outFile)
 
-	var o int
+	var offset int
 
 	// Write out to file, making replacements as we go
 	for _, d := range deltas {
 
 		// Read up to the next found word
-		write(w, inputData[o:d.off])
+		write(w, inputData[offset:d.off])
 
 		// Write replacement value
 		write(w, masterIndex.readItem(d.index).replace)
 
 		// Jump forward to end of replaced word
-		o = d.off + len(masterIndex.readItem(d.index).find)
+		offset = d.off + len(masterIndex.readItem(d.index).find)
 		w.Flush()
 
 	}
 
 	// Write the remaining input data
-	write(w, inputData[o:])
+	write(w, inputData[offset:])
 	w.Flush()
 	fmt.Printf("Done.\n")
 }

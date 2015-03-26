@@ -66,11 +66,11 @@ func producer(input <-chan line, index *replaceIndex) []delta {
 }
 
 // Make deltas
-func makeDeltas(t line, index *replaceIndex, id int) []delta {
+func makeDeltas(l line, index *replaceIndex, id int) []delta {
 
 	s := make([]delta, 0)
 
-	lineIndex := suffixarray.New(t.value)
+	lineIndex := suffixarray.New(l.value)
 
 	// Look for each replacement word in the line
 	for i := 0; i < index.len(); i++ {
@@ -81,8 +81,8 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 			for _, p := range results {
 
 				// Is it a full word match or not?
-				if (p < len(t.value) && !syntax.IsWordChar(rune(t.value[p+len(index.readItem(i).find)])+1)) || (p == len(t.value)) {
-					d := delta{off: t.off + p, index: i}
+				if (p < len(l.value) && !syntax.IsWordChar(rune(l.value[p+len(index.readItem(i).find)])+1)) || (p == len(l.value)) {
+					d := delta{off: l.off + p, index: i}
 					s = append(s, d)
 				}
 			}
