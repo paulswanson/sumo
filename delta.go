@@ -74,16 +74,13 @@ func makeDeltas(t line, index *replaceIndex, id int) []delta {
 
 	// Look for each replacement word in the line
 	for i := 0; i < index.len(); i++ {
+
+		// Find this word in the line
 		results := lineIndex.Lookup(index.readItem(i).find, -1)
 		if len(results) > 0 {
 			for _, p := range results {
 
-				// It's not a match if it's a partial word
-
-				// TODO Is there a guarantee of left-to-right eval?
-				// TODO Test this works and hasn't broken everything!!!
-				// BUG Fails on matching last word of line with a terminating non-alpha, drops it
-				// It's a full word match if it's end of line or word terminates in non-alpha
+				// Is it a full word match or not?
 				if (p < len(t.value) && !syntax.IsWordChar(rune(t.value[p+len(index.readItem(i).find)])+1)) || (p == len(t.value)) {
 					d := delta{off: t.off + p, index: i}
 					s = append(s, d)
